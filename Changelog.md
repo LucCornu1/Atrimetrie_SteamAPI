@@ -1,3 +1,7 @@
+## [1.0.1] - -2022-02-23 - Luc
+### Added
+- L'API Steam, géré par un sous-système de GameInstance
+
 ## [1.0.0] - 2022-02-23
 ### Added
 - Un changelog pour garder une trace du travail effectuer
