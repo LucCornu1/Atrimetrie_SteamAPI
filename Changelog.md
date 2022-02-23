@@ -1,4 +1,8 @@
-## [1.0.1] - -2022-02-23 - Luc
+## [1.0.2] - 2022-02-23 - Luc
+### Added
+- Test sur les lobby
+
+## [1.0.1] - 2022-02-23 - Luc
 ### Added
 - L'API Steam, géré par un sous-système de GameInstance
 
