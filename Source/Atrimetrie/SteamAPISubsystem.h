@@ -26,6 +26,7 @@ class ATRIMETRIE_API USteamAPISubsystem : public UGameInstanceSubsystem
 protected:
 	static constexpr char* APP_ID = RAW_APP_ID;
 	CSteamID MyId;
+	CSteamID LobbyId;
 
 	FDelegateHandle TickDelegateHandle;
 	
@@ -39,6 +40,16 @@ public:
 	bool Tick(float DeltaTime);
 
 
+// Friends
+protected:
+	int Size = 1;
+	CSteamID* SteamFriendArray = new CSteamID[Size];
+
+protected:
+	UFUNCTION(BlueprintCallable, Category = "SteamAPI|Friends")
+		void SetSteamFriendArray();
+
+
 // Lobbies
 private:
 	STEAM_CALLBACK(USteamAPISubsystem, OnLobbyEntered, LobbyEnter_t);
@@ -47,6 +58,11 @@ private:
 	CCallResult<USteamAPISubsystem, LobbyCreated_t> m_LobbyCreatedCallResult;
 
 public:
+	void InviteFriendA(CSteamID UserId);
+
+	UFUNCTION(BlueprintCallable, Category = "SteamAPI|Lobby")
+		void JoinFriendLobby();
+
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "SteamAPI|Lobby")
 		void CreateFriendLobby(int nMaxMembers);
 };
