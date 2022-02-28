@@ -27,6 +27,7 @@ protected:
 	static constexpr char* APP_ID = RAW_APP_ID;
 	CSteamID MyId;
 	CSteamID LobbyId;
+	bool bInvited = false;
 
 	FDelegateHandle TickDelegateHandle;
 	

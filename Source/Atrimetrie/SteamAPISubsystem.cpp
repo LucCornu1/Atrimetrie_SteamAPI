@@ -24,17 +24,20 @@ void USteamAPISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 	
 	MyId = SteamUser()->GetSteamID();
+
 	CreateFriendLobby(10); // Should be in a seperate function
-
 	SetSteamFriendArray();
-
-	for (int i = 0; i < Size; i++)
+	/*for (int i = 0; i < Size; i++)
 	{
+		const char* FriendPersonaName = SteamFriends()->GetFriendPersonaName(SteamFriendArray[i]);
+		size_t n = strlen(FriendPersonaName);
+		const FString& Str = FString(n, FriendPersonaName);
+		const TCHAR* Text = *Str;
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("%d"), SteamFriendArray[i].ConvertToUint64()));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("%s : %d"), Text, SteamFriendArray[i].ConvertToUint64()));
 		}
-	}
+	}*/
 
 }
 
@@ -47,6 +50,24 @@ void USteamAPISubsystem::Deinitialize()
 bool USteamAPISubsystem::Tick(float DeltaTime)
 {
 	SteamAPI_RunCallbacks();
+
+	if (!bInvited)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("FALSE")));
+		}
+
+		const char* ControlFriend = "ElectricMammothDruid";
+		for (int i = 0; i < Size; i++)
+		{
+			const char* FriendPersonaName = SteamFriends()->GetFriendPersonaName(SteamFriendArray[i]);
+			if (strcmp(ControlFriend, FriendPersonaName) == 0)
+			{
+				InviteFriendA(SteamFriendArray[i]);
+			}
+		}
+	}
 	return true;
 
 }
@@ -66,6 +87,7 @@ void USteamAPISubsystem::SetSteamFriendArray()
 	Size = MaxFriendCount;
 	delete[] SteamFriendArray;
 	SteamFriendArray = NewArray;
+
 }
 
 
@@ -86,12 +108,11 @@ void USteamAPISubsystem::OnLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailu
 		UE_LOG(LogTemp, Error, TEXT("Lobby creation failed"));
 		return;
 	}
-
-	LobbyId = pCallback->m_ulSteamIDLobby;
 	/*if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("You've created a Lobby %d"), pCallback->m_ulSteamIDLobby));
 	}*/
+	LobbyId = CSteamID(pCallback->m_ulSteamIDLobby);
 
 }
 
@@ -102,6 +123,13 @@ void USteamAPISubsystem::InviteFriendA(CSteamID UserId)
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Friend invited")));
+		}
+		bInvited = true;
+	}
+	else {
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Friend not invited")));
 		}
 	}
 
