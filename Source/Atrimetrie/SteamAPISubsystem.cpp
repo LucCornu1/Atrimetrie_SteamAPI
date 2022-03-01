@@ -24,9 +24,9 @@ void USteamAPISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 	
 	MyId = SteamUser()->GetSteamID();
-
-	CreateFriendLobby(10); // Should be in a seperate function
+	SteamNetworkingUtils()->InitRelayNetworkAccess();
 	SetSteamFriendArray();
+
 	/*for (int i = 0; i < Size; i++)
 	{
 		const char* FriendPersonaName = SteamFriends()->GetFriendPersonaName(SteamFriendArray[i]);
@@ -51,7 +51,29 @@ bool USteamAPISubsystem::Tick(float DeltaTime)
 {
 	SteamAPI_RunCallbacks();
 
-	if (!bInvited)
+	if (GetWorld()->IsServer())
+	{
+		if (!bInvited)
+			CreateFriendLobby(10);
+	}
+	
+	/*if (GetWorld()->IsServer())
+	{
+		// CreateFriendLobby(10); // Should be in a seperate function
+
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Server")));
+		}
+	}
+	else {
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("Not server")));
+		}
+	}*/
+
+	/*if (!bInvited)
 	{
 		if (GEngine)
 		{
@@ -67,7 +89,7 @@ bool USteamAPISubsystem::Tick(float DeltaTime)
 				InviteFriendA(SteamFriendArray[i]);
 			}
 		}
-	}
+	}*/
 	return true;
 
 }

@@ -1,3 +1,5 @@
+## [1.0.4] - 2022-03-01 - Luc
+
 ## [1.0.3] - 2022-02-28 - Luc
 ### Added
 - Enregistrement de la liste d'amis de Steam lors de la connection

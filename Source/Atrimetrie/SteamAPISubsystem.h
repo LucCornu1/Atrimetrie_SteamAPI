@@ -30,7 +30,7 @@ protected:
 	bool bInvited = false;
 
 	FDelegateHandle TickDelegateHandle;
-	
+
 public:
 	// Begin USubsystem
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -41,7 +41,7 @@ public:
 	bool Tick(float DeltaTime);
 
 
-// Friends
+	// Friends
 protected:
 	int Size = 1;
 	CSteamID* SteamFriendArray = new CSteamID[Size];
@@ -51,7 +51,7 @@ protected:
 		void SetSteamFriendArray();
 
 
-// Lobbies
+	// Lobbies
 private:
 	STEAM_CALLBACK(USteamAPISubsystem, OnLobbyEntered, LobbyEnter_t);
 
