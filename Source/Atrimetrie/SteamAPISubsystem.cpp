@@ -71,7 +71,7 @@ bool USteamAPISubsystem::Tick(float DeltaTime)
 		}
 	}*/
 
-	if (!bInvited)
+	/*if (!bInvited)
 	{
 		const char* ControlFriend = "ElectricMammothDruid";
 		for (int i = 0; i < FriendsArray.Num(); i++)
@@ -84,7 +84,7 @@ bool USteamAPISubsystem::Tick(float DeltaTime)
 				break;
 			}
 		}
-	}
+	}*/
 	return true;
 
 }
@@ -139,6 +139,7 @@ void USteamAPISubsystem::OnPacketReceived(P2PSessionRequest_t* pCallback)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Packet Received")));
 		}
 	}
+
 }
 
 void USteamAPISubsystem::OnLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure)
@@ -181,3 +182,34 @@ void USteamAPISubsystem::CreateFriendLobby(int nMaxMembers)
 	m_LobbyCreatedCallResult.Set(hSteamAPICall, this, &USteamAPISubsystem::OnLobbyCreated);
 
 }
+
+void USteamAPISubsystem::TestFunction_Debug()
+{
+	const char* ControlFriend = "ElectricMammothDruid";
+	for (int i = 0; i < FriendsArray.Num(); i++)
+	{
+		const char* FriendPersonaName = SteamFriends()->GetFriendPersonaName(FriendsArray[i]->SteamID);
+		if (strcmp(ControlFriend, FriendPersonaName) == 0)
+		{
+			CreateFriendLobby(10);
+			InviteFriendA(FriendsArray[i]->SteamID);
+			JooJ = FriendsArray[i]->SteamID;
+			break;
+		}
+	}
+
+}
+
+void USteamAPISubsystem::SendJooJAMessage()
+{
+	BYTE* data = new BYTE[200];
+	if (SteamNetworking()->SendP2PPacket(/*pCallback->m_ulSteamIDUserChanged*/ JooJ, data, 200, k_EP2PSendReliable))
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Package successfully sent")));
+		}
+	}
+
+}
+

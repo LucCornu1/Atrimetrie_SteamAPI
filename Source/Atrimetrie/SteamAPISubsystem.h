@@ -94,4 +94,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "SteamAPI|Lobby")
 		void CreateFriendLobby(int nMaxMembers);
+
+	UFUNCTION(BlueprintCallable, Category = "SteamAPI|Lobby|Test")
+		void TestFunction_Debug();
+
+	UFUNCTION(BlueprintCallable, Category = "SteamAPI|Lobby|Test")
+		void SendJooJAMessage();
 };
