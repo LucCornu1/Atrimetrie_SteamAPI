@@ -1,6 +1,7 @@
 // CORNU Luc
 
 
+#include <stddef.h>
 #include "SteamAPISubsystem.h"
 
 // Init & Deinit
@@ -23,7 +24,10 @@ void USteamAPISubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		FGenericPlatformMisc::RequestExit(true);
 	}
 	
-	MyId = SteamUser()->GetSteamID();
+	FSteamFriend* Self = new FSteamFriend;
+	Self->SteamID = SteamUser()->GetSteamID();
+	FriendsArray.Init(Self, 1);
+
 	SteamNetworkingUtils()->InitRelayNetworkAccess();
 	SetSteamFriendArray();
 
@@ -50,12 +54,6 @@ void USteamAPISubsystem::Deinitialize()
 bool USteamAPISubsystem::Tick(float DeltaTime)
 {
 	SteamAPI_RunCallbacks();
-
-	if (GetWorld()->IsServer())
-	{
-		if (!bInvited)
-			CreateFriendLobby(10);
-	}
 	
 	/*if (GetWorld()->IsServer())
 	{
@@ -73,23 +71,20 @@ bool USteamAPISubsystem::Tick(float DeltaTime)
 		}
 	}*/
 
-	/*if (!bInvited)
+	if (!bInvited)
 	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("FALSE")));
-		}
-
 		const char* ControlFriend = "ElectricMammothDruid";
-		for (int i = 0; i < Size; i++)
+		for (int i = 0; i < FriendsArray.Num(); i++)
 		{
-			const char* FriendPersonaName = SteamFriends()->GetFriendPersonaName(SteamFriendArray[i]);
+			const char* FriendPersonaName = SteamFriends()->GetFriendPersonaName(FriendsArray[i]->SteamID);
 			if (strcmp(ControlFriend, FriendPersonaName) == 0)
 			{
-				InviteFriendA(SteamFriendArray[i]);
+				CreateFriendLobby(10);
+				InviteFriendA(FriendsArray[i]->SteamID);
+				break;
 			}
 		}
-	}*/
+	}
 	return true;
 
 }
@@ -99,16 +94,13 @@ bool USteamAPISubsystem::Tick(float DeltaTime)
 void USteamAPISubsystem::SetSteamFriendArray()
 {
 	int MaxFriendCount = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
-	CSteamID* NewArray = new CSteamID[MaxFriendCount];
 
-	for (int i = 0; i < MaxFriendCount; i++)
+	for (int i = 1; i < MaxFriendCount; i++)
 	{
-		NewArray[i] = SteamFriends()->GetFriendByIndex(i, k_EFriendFlagImmediate);
+		FSteamFriend* SteamFriend = new FSteamFriend;
+		SteamFriend->SteamID = SteamFriends()->GetFriendByIndex(i, k_EFriendFlagImmediate);
+		FriendsArray.Emplace(SteamFriend);
 	}
-
-	Size = MaxFriendCount;
-	delete[] SteamFriendArray;
-	SteamFriendArray = NewArray;
 
 }
 
@@ -121,6 +113,32 @@ void USteamAPISubsystem::OnLobbyEntered(LobbyEnter_t* pCallback)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("You've entered a Lobby")));
 	}*/
 
+}
+
+void USteamAPISubsystem::OnLobbyUpdate(LobbyChatUpdate_t* pCallback)
+{
+	if (pCallback->m_rgfChatMemberStateChange == k_EChatMemberStateChangeEntered)
+	{	
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Test Lobby Entered")));
+		}
+
+		BYTE* data = new BYTE[200];
+		SteamNetworking()->SendP2PPacket(/*pCallback->m_ulSteamIDUserChanged*/ SteamUser()->GetSteamID(), data, 200, k_EP2PSendReliable);
+	}
+
+}
+
+void USteamAPISubsystem::OnPacketReceived(P2PSessionRequest_t* pCallback)
+{
+	if (SteamNetworking()->AcceptP2PSessionWithUser(pCallback->m_steamIDRemote))
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Packet Received")));
+		}
+	}
 }
 
 void USteamAPISubsystem::OnLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure)
@@ -157,13 +175,7 @@ void USteamAPISubsystem::InviteFriendA(CSteamID UserId)
 
 }
 
-void USteamAPISubsystem::JoinFriendLobby()
-{
-	// None
-
-}
-
-void USteamAPISubsystem::CreateFriendLobby_Implementation(int nMaxMembers)
+void USteamAPISubsystem::CreateFriendLobby(int nMaxMembers)
 {
 	SteamAPICall_t hSteamAPICall = SteamMatchmaking()->CreateLobby(k_ELobbyTypeFriendsOnly, nMaxMembers);
 	m_LobbyCreatedCallResult.Set(hSteamAPICall, this, &USteamAPISubsystem::OnLobbyCreated);

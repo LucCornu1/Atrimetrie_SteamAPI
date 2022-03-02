@@ -15,6 +15,36 @@
 
 #define RAW_APP_ID "480"
 
+
+USTRUCT(BlueprintType)
+struct FSteamFriend
+{
+	GENERATED_BODY()
+
+private:
+	FString SteamName = "";
+
+public:
+	CSteamID SteamID;
+
+	FString GetNameFromID()
+	{
+		const char* FriendPersonaName = SteamFriends()->GetFriendPersonaName(SteamID);
+		size_t n = strlen(FriendPersonaName);
+		return FString(n, FriendPersonaName);
+	}
+
+	FString GetSteamName()
+	{
+		if (SteamName != GetNameFromID())
+		{
+			SteamName = GetNameFromID();
+		}
+		return SteamName;
+	}
+};
+
+
 /**
  * 
  */
@@ -25,7 +55,6 @@ class ATRIMETRIE_API USteamAPISubsystem : public UGameInstanceSubsystem
 
 protected:
 	static constexpr char* APP_ID = RAW_APP_ID;
-	CSteamID MyId;
 	CSteamID LobbyId;
 	bool bInvited = false;
 
@@ -43,10 +72,10 @@ public:
 
 	// Friends
 protected:
-	int Size = 1;
-	CSteamID* SteamFriendArray = new CSteamID[Size];
+	TArray<struct FSteamFriend*> FriendsArray;
+	CSteamID JooJ;
 
-protected:
+public:
 	UFUNCTION(BlueprintCallable, Category = "SteamAPI|Friends")
 		void SetSteamFriendArray();
 
@@ -54,6 +83,8 @@ protected:
 	// Lobbies
 private:
 	STEAM_CALLBACK(USteamAPISubsystem, OnLobbyEntered, LobbyEnter_t);
+	STEAM_CALLBACK(USteamAPISubsystem, OnLobbyUpdate, LobbyChatUpdate_t);
+	STEAM_CALLBACK(USteamAPISubsystem, OnPacketReceived, P2PSessionRequest_t);
 
 	void OnLobbyCreated(LobbyCreated_t* pCallback, bool bIOFailure);
 	CCallResult<USteamAPISubsystem, LobbyCreated_t> m_LobbyCreatedCallResult;
@@ -62,8 +93,5 @@ public:
 	void InviteFriendA(CSteamID UserId);
 
 	UFUNCTION(BlueprintCallable, Category = "SteamAPI|Lobby")
-		void JoinFriendLobby();
-
-	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "SteamAPI|Lobby")
 		void CreateFriendLobby(int nMaxMembers);
 };
